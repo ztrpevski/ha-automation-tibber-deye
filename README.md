@@ -18,9 +18,25 @@ Every day at `00:30` and `15:30` (and on HA start) the automation:
 |---|---|
 | Home Assistant | 2024.x or newer |
 | Tibber integration | [Tibber for HA](https://www.home-assistant.io/integrations/tibber/) with `tibber.get_prices` service |
-| Solarman / Deye integration | Entities: `select.inverter_program_N_charging`, `number.inverter_program_N_power`, `number.inverter_program_N_soc`, `time.inverter_program_N_time` (N = 1-6) |
+| Deye/Solarman inverter | Supported: SE-3K, SE-5K, SE-10K, SG-3K, SG-5K, SG-10K and similar (with Time-of-Use slots) |
+| Solarman WiFi dongle | **Required for communication** — A Solarman WiFi/Ethernet dongle (e.g., iE-DL-WIF002) must be connected to your Deye inverter to enable remote configuration via the Solarman app/cloud API |
+| Solarman / Deye integration | [Solarman for HA](https://www.home-assistant.io/integrations/solarman/) integration installed and configured. Provides entities: `select.inverter_program_N_charging`, `number.inverter_program_N_power`, `number.inverter_program_N_soc`, `time.inverter_program_N_time` (N = 1-6) |
 | Battery SOC sensor | `sensor.inverter_battery_capacity` (percentage) |
 | Tibber price sensor | `sensor.YOUR_HOME_NAME_electricity_price` — **replace `YOUR_HOME_NAME`** with your actual entity name |
+
+### WiFi Dongle Setup (Solarman)
+
+The Deye inverter uses a **Solarman WiFi dongle** (hardware bridge) to communicate with the cloud and expose Time-of-Use programming entities in Home Assistant.
+
+**Steps:**
+
+1. **Install the dongle** — Connect the WiFi dongle to the RS485 port on your Deye inverter (usually a 2-pin terminal)
+2. **Power it** — The dongle draws power from the inverter; no separate power supply needed
+3. **Connect to WiFi** — Use the Solarman mobile app to add the dongle to your home WiFi network
+4. **Pair in HA** — Install the [Solarman integration](https://www.home-assistant.io/integrations/solarman/), add a new device, and enter your dongle's IP address or serial number
+5. **Verify entities** — Check **Settings → Devices & Services → Solarman** for 6 `program_N_charging` select entities (N = 1–6)
+
+> **Note:** Without the WiFi dongle, you cannot write TOU schedules to the inverter remotely. This automation requires direct entity access to the 6 programming slots.
 
 ## Quick start
 
@@ -102,20 +118,87 @@ If your entities are named differently, replace them throughout the YAML files.
 | `input_boolean.tibber_deye_force_sell_export` | `on` | Force sell even if spread guard would block it |
 | `input_boolean.tibber_deye_debug_notifications` | `off` | Show detailed schedule notification after each run |
 
-## How the TOU schedule is built
+## How the 6 TOU Programming Slots Work
 
-Deye/Solarman TOU works with 6 programs, each with a **start time** that acts as the end time of the previous program. v9 sorts all six period boundaries and writes them in ascending order to avoid duplicate `00:00` boundaries.
+The Deye inverter has **exactly 6 programmable Time-of-Use (TOU) slots**, each controlling the inverter's behavior during a time window. Each slot is programmed via Home Assistant entity calls to the Solarman integration.
 
+### Slot Structure
+
+Each of the 6 slots is independently controlled by:
+
+| Entity | Meaning | Example |
+|---|---|---|
+| `select.inverter_program_N_charging` | Operating mode | `Grid` (grid-charge) or `Disabled` (use battery or self-use) |
+| `number.inverter_program_N_power` | Power setpoint | `5000` W for charging, `10000` W for selling |
+| `number.inverter_program_N_soc` | Target State-of-Charge | `90%` after charge, `25%` after discharge |
+| `time.inverter_program_N_time` | **Start time** of this slot | `14:30:00` (also marks end of previous slot) |
+
+where **N = 1, 2, 3, 4, 5, 6**.
+
+### How This Automation Builds the Schedule
+
+Every 12 hours (00:30 and 15:30), the automation:
+
+1. **Fetches 48-hour price forecast** from Tibber
+2. **Identifies two windows:**
+   - **Charge window:** Cheapest contiguous 1–4 hour block (grid-buy)
+   - **Sell window:** Most expensive contiguous 1–4 hour block (export to grid)
+3. **Calculates 6 boundaries** (start times):
+   - Slot 1: `00:00` — Night self-use (1 kW limit)
+   - Slot 2: `charge_start` — Grid charging begins
+   - Slot 3: `charge_end` — Charging stops, back to neutral (0 W)
+   - Slot 4: `06:00` — Morning boundary (adjustable)
+   - Slot 5: `sell_start` — Peak export begins
+   - Slot 6: `sell_end` — Back to neutral/disabled
+4. **Sorts the 6 times** in ascending order (to avoid duplicate `00:00`)
+5. **Writes each slot** via Solarman entity calls to the inverter
+
+### Slot Configuration Example
+
+```yaml
+Period 1 (night_start):    00:00  Disabled  1000 W  SOC 20%   — night self-use (cheap hours)
+Period 2 (charge_start):   02:15  Grid      5000 W  SOC 90%   — cheapest window (buy from grid)
+Period 3 (charge_end):     04:45  Disabled     0 W  SOC 25%   — after charge, neutral
+Period 4 (morning):        06:00  Disabled     0 W  SOC 25%   — end of night self-use
+Period 5 (sell_start):     16:30  Disabled* 10000 W  SOC 25%  — peak price export (sell to grid)
+Period 6 (sell_end):       19:00  Disabled     0 W  SOC 25%   — back to neutral
 ```
-Period 1 (night_start):    00:00  Disabled  1000 W  SOC 20%   — night self-use
-Period 2 (charge_start):   HH:MM  Grid      5000 W  SOC 90%   — cheapest window
-Period 3 (charge_end):     HH:MM  Disabled     0 W  SOC 25%   — after charge, neutral
-Period 4 (night_end):      06:00  Disabled     0 W  SOC 25%   — end of morning window
-Period 5 (sell_start):     HH:MM  Disabled* 10000 W  SOC 25%  — peak price export
-Period 6 (sell_end):       HH:MM  Disabled     0 W  SOC 25%   — back to neutral
+
+### Send to Inverter via Solarman WiFi Dongle
+
+Once all 6 slots are calculated, the automation calls the Solarman integration to write each slot:
+
+```yaml
+service: select.select_option
+target:
+  entity_id: select.inverter_program_1_charging
+data:
+  option: Disabled
+
+service: number.set_value
+target:
+  entity_id: number.inverter_program_1_soc
+data:
+  value: 20
+
+service: time.set_value
+target:
+  entity_id: time.inverter_program_1_time
+data:
+  time: "00:00:00"
 ```
 
-\* The Deye "sell/export" mode is labelled **Disabled** in the Solarman integration when battery-first selling is enabled at the inverter level. If your inverter shows a different option name (e.g. "Selling First"), the automation auto-detects it from the select entity options.
+These calls flow through the **Solarman WiFi dongle → cloud API → inverter memory**, updating the inverter's TOU schedule in real-time.
+
+> **Important:** The WiFi dongle must be powered and connected for the automation to successfully write the slots. If the dongle is offline, the entity calls will fail silently and the previous TOU schedule remains unchanged.
+
+### Adaptive Mode Detection
+
+The automation auto-detects the correct **sell/export mode** label:
+- If `select.inverter_program_N_charging` options include `"Selling First"` or similar, it uses that
+- Otherwise, it defaults to `"Disabled"` (battery-first selling)
+
+This ensures compatibility across Deye inverter firmware versions.
 
 ## Price spread guard
 
