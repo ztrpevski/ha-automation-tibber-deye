@@ -1,0 +1,26 @@
+{
+  "package": "/mnt/data/tibber_deye_smart_arbitrage_package_v9_boundary_force_sell.yaml",
+  "yaml_parsed": true,
+  "top_level_keys": [
+    "input_number",
+    "input_boolean",
+    "script",
+    "template",
+    "automation"
+  ],
+  "automations": 2,
+  "scripts": 3,
+  "input_numbers": 14,
+  "input_booleans": 2,
+  "fixes": [
+    "capital select options Grid and Disabled",
+    "force sell/export helper added",
+    "duplicate midnight boundary avoided when charge starts at 00:00",
+    "night self-use resumes after midnight charge block when charge ends before 06:00",
+    "helper variables split into a separate action",
+    "unused boundaries avoid interrupting charge if charge spans 06:00"
+  ],
+  "forbidden_lowercase_option_disabled_present": false,
+  "forbidden_lowercase_option_grid_present": false,
+  "old_v8_alias_present": false
+}

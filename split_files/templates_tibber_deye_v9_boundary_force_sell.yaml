@@ -1,0 +1,88 @@
+- sensor:
+      - name: Tibber Deye selected price day
+        unique_id: tibber_deye_selected_price_day
+        icon: mdi:calendar-clock
+        state: >-
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {{ 'tomorrow' if now().hour >= 23 and tomorrow | count > 0 else 'today' }}
+
+      - name: Tibber Deye price slots count
+        unique_id: tibber_deye_price_slots_count
+        icon: mdi:timetable
+        unit_of_measurement: slots
+        state: >-
+          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
+          {{ prices | count }}
+
+      - name: Tibber Deye slot minutes
+        unique_id: tibber_deye_slot_minutes
+        icon: mdi:timer-outline
+        unit_of_measurement: min
+        state: >-
+          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
+          {{ 15 if prices | count > 24 else 60 }}
+
+      - name: Tibber Deye cheapest single slot time
+        unique_id: tibber_deye_cheapest_single_slot_time
+        icon: mdi:cash-minus
+        state: >-
+          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
+          {% set slot = 15 if prices | count > 24 else 60 %}
+          {% set ns = namespace(best=999999999, index=0) %}
+          {% for item in prices %}
+            {% set price = item.total | default(item.price | default(item)) | float(999999999) %}
+            {% if price < ns.best %}
+              {% set ns.best = price %}
+              {% set ns.index = loop.index0 %}
+            {% endif %}
+          {% endfor %}
+          {% set m = ns.index * slot %}
+          {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
+        attributes:
+          price: >-
+            {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
+            {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+            {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
+            {% set ns = namespace(best=999999999) %}
+            {% for item in prices %}
+              {% set price = item.total | default(item.price | default(item)) | float(999999999) %}
+              {% if price < ns.best %}{% set ns.best = price %}{% endif %}
+            {% endfor %}
+            {{ ns.best }}
+
+      - name: Tibber Deye highest single slot time
+        unique_id: tibber_deye_highest_single_slot_time
+        icon: mdi:cash-plus
+        state: >-
+          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
+          {% set slot = 15 if prices | count > 24 else 60 %}
+          {% set ns = namespace(best=-999999999, index=0) %}
+          {% for item in prices %}
+            {% set price = item.total | default(item.price | default(item)) | float(-999999999) %}
+            {% if price > ns.best %}
+              {% set ns.best = price %}
+              {% set ns.index = loop.index0 %}
+            {% endif %}
+          {% endfor %}
+          {% set m = ns.index * slot %}
+          {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
+        attributes:
+          price: >-
+            {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
+            {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+            {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
+            {% set ns = namespace(best=-999999999) %}
+            {% for item in prices %}
+              {% set price = item.total | default(item.price | default(item)) | float(-999999999) %}
+              {% if price > ns.best %}{% set ns.best = price %}{% endif %}
+            {% endfor %}
+            {{ ns.best }}
+

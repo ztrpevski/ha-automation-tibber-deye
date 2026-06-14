@@ -1,0 +1,14 @@
+# Example configuration.yaml entries.
+# Use only one style at a time: package OR split.
+# Never load both, or helpers/scripts/entities will collide.
+
+# Split-file style (recommended for this converted bundle):
+automation: !include split_files/automations_tibber_deye_smart_v9_boundary_force_sell.yaml
+script: !include split_files/scripts_tibber_deye_v9_boundary_force_sell.yaml
+template: !include split_files/templates_tibber_deye_v9_boundary_force_sell.yaml
+input_number: !include split_files/input_numbers_tibber_deye_v9_boundary_force_sell.yaml
+input_boolean: !include split_files/input_booleans_tibber_deye_v9_boundary_force_sell.yaml
+
+# Package style alternative (use only if you disable split includes above):
+# homeassistant:
+#   packages: !include_dir_named packages

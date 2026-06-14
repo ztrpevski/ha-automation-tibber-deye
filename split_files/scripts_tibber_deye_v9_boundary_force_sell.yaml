@@ -1,0 +1,31 @@
+tibber_inverter_tou_mode:
+    alias: Tibber inverter TOU mode
+    description: Placeholder hook to enable Deye Time Of Use / Selling First before writing periods
+    mode: single
+    sequence:
+      - delay: "00:00:01"
+
+  # Optional helper: trigger the full smart schedule recalculation from Developer Tools -> Services.
+tibber_deye_recalculate_now:
+    alias: Tibber Deye recalculate smart schedule now
+    mode: single
+    sequence:
+      - event: tibber_deye_recalculate_schedule
+        event_data:
+          source: script.tibber_deye_recalculate_now
+
+  # Optional helper: show the currently visible debug sensors.
+tibber_deye_show_debug:
+    alias: Tibber Deye show debug values
+    mode: single
+    sequence:
+      - service: persistent_notification.create
+        data:
+          title: Tibber Deye debug
+          message: >-
+            Price day: {{ states('sensor.tibber_deye_selected_price_day') }}.
+            Slots: {{ states('sensor.tibber_deye_price_slots_count') }}.
+            Cheapest single slot: {{ states('sensor.tibber_deye_cheapest_single_slot_time') }}.
+            Highest single slot: {{ states('sensor.tibber_deye_highest_single_slot_time') }}.
+            Battery SOC: {{ states('sensor.inverter_battery_capacity') }}%.
+

@@ -1,0 +1,10 @@
+tibber_deye_force_sell_export:
+    name: Tibber Deye force sell export
+    icon: mdi:transmission-tower-export
+    initial: true
+
+tibber_deye_debug_notifications:
+    name: Tibber Deye debug notifications
+    icon: mdi:message-alert
+    initial: false
+
