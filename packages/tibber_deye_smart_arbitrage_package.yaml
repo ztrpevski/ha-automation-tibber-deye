@@ -160,6 +160,13 @@ input_boolean:
     icon: mdi:message-alert
     initial: false
 
+input_text:
+  tibber_deye_manual_sell_option:
+    name: Tibber Deye manual sell option override
+    max: 60
+    mode: text
+    icon: mdi:form-textbox
+
 script:
   tibber_inverter_tou_mode:
     alias: Tibber inverter TOU mode
@@ -326,15 +333,61 @@ automation:
           force_sell_export: >-
             {% set force_state = states('input_boolean.tibber_deye_force_sell_export') %}
             {{ force_state in ['on', 'unknown', 'unavailable'] }}
+          manual_sell_option_requested: >-
+            {% set raw = states('input_text.tibber_deye_manual_sell_option') %}
+            {% if raw in ['unknown', 'unavailable', 'none', 'None'] %}
+              {% set raw = '' %}
+            {% endif %}
+            {{ raw | trim }}
+          sell_options_program_1: "{{ state_attr('select.inverter_program_1_charging', 'options') or [] }}"
+          sell_options_program_2: "{{ state_attr('select.inverter_program_2_charging', 'options') or [] }}"
+          sell_options_program_3: "{{ state_attr('select.inverter_program_3_charging', 'options') or [] }}"
+          sell_options_program_4: "{{ state_attr('select.inverter_program_4_charging', 'options') or [] }}"
+          sell_options_program_5: "{{ state_attr('select.inverter_program_5_charging', 'options') or [] }}"
+          sell_options_program_6: "{{ state_attr('select.inverter_program_6_charging', 'options') or [] }}"
           sell_option: >-
-            {% set options = state_attr('select.inverter_program_1_charging', 'options') or [] %}
-            {% set ns = namespace(value='Disabled') %}
-            {% for opt in options %}
-              {% set l = (opt | string | lower) %}
-              {% if 'sell' in l or ('first' in l and 'load' not in l and 'grid' not in l) %}
-                {% set ns.value = opt %}
-              {% endif %}
+            {% set option_sources = [
+              sell_options_program_1,
+              sell_options_program_2,
+              sell_options_program_3,
+              sell_options_program_4,
+              sell_options_program_5,
+              sell_options_program_6
+            ] %}
+            {% set requested = manual_sell_option_requested | string | trim %}
+            {% set requested_l = requested | lower %}
+            {% set ns = namespace(all=[], value='Disabled') %}
+            {% for src in option_sources %}
+              {% for opt in src %}
+                {% if opt not in ns.all %}
+                  {% set ns.all = ns.all + [opt] %}
+                {% endif %}
+              {% endfor %}
             {% endfor %}
+            {% if requested != '' %}
+              {% for opt in ns.all %}
+                {% set l = (opt | string | lower) %}
+                {% if l == requested_l %}
+                  {% set ns.value = opt %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% if ns.value == 'Disabled' %}
+              {% for opt in ns.all %}
+                {% set l = (opt | string | lower) %}
+                {% if 'sell' in l or 'export' in l or 'feed' in l or 'discharge' in l %}
+                  {% set ns.value = opt %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% if ns.value == 'Disabled' %}
+              {% for opt in ns.all %}
+                {% set l = (opt | string | lower) %}
+                {% if 'first' in l and 'load' not in l and 'grid' not in l and 'charge' not in l %}
+                  {% set ns.value = opt %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
             {{ ns.value }}
           current_soc: "{{ states('sensor.inverter_battery_capacity') | float(25) }}"
           using_tomorrow: "false"
@@ -499,10 +552,25 @@ automation:
             {% else %}
               {{ csi }}
             {% endif %}
-          charge_start_minute: "{{ (charge_start_index_effective | int(0) * slot_minutes | int(60)) | int }}"
+          charge_start_minute: >-
+            {% set prices = prices_window if prices_window is sequence and prices_window is not string else [] %}
+            {% set i = charge_start_index_effective | int(0) %}
+            {% set item = prices[i] if i >= 0 and i < (prices | count) else none %}
+            {% if item is mapping %}
+              {% set start_raw = item.startsAt | default(item.start | default(item.starts_at | default(item.start_time | default(item.time | default(''))))) %}
+              {% set ts = as_timestamp(start_raw, 0) %}
+              {% if ts > 0 %}
+                {% set dt = as_local(as_datetime(start_raw)) %}
+                {{ (dt.hour * 60) + dt.minute }}
+              {% else %}
+                {{ (i * (slot_minutes | int(60))) | int }}
+              {% endif %}
+            {% else %}
+              {{ (i * (slot_minutes | int(60))) | int }}
+            {% endif %}
           charge_end_index: "{{ (charge_start_index_effective | int(0)) + (charge_slots | int(1)) }}"
           charge_end_minute: >-
-            {% set end_minute = ((charge_start_index_effective | int(0)) + (charge_slots | int(1))) * (slot_minutes | int(60)) %}
+            {% set end_minute = (charge_start_minute | int(0)) + ((charge_slots | int(1)) * (slot_minutes | int(60))) %}
             {{ [end_minute, 1439] | min }}
           charge_start_time: >-
             {% set m = charge_start_minute | int(0) %}
@@ -568,9 +636,24 @@ automation:
 
       - alias: Convert sell block to start/end times
         variables:
-          sell_start_minute: "{{ (sell_start_index | int(0) * slot_minutes | int(60)) | int }}"
+          sell_start_minute: >-
+            {% set prices = prices_window if prices_window is sequence and prices_window is not string else [] %}
+            {% set i = sell_start_index | int(0) %}
+            {% set item = prices[i] if i >= 0 and i < (prices | count) else none %}
+            {% if item is mapping %}
+              {% set start_raw = item.startsAt | default(item.start | default(item.starts_at | default(item.start_time | default(item.time | default(''))))) %}
+              {% set ts = as_timestamp(start_raw, 0) %}
+              {% if ts > 0 %}
+                {% set dt = as_local(as_datetime(start_raw)) %}
+                {{ (dt.hour * 60) + dt.minute }}
+              {% else %}
+                {{ (i * (slot_minutes | int(60))) | int }}
+              {% endif %}
+            {% else %}
+              {{ (i * (slot_minutes | int(60))) | int }}
+            {% endif %}
           sell_end_minute: >-
-            {% set end_minute = ((sell_start_index | int(0)) + (sell_slots | int(1))) * (slot_minutes | int(60)) %}
+            {% set end_minute = (sell_start_minute | int(0)) + ((sell_slots | int(1)) * (slot_minutes | int(60))) %}
             {{ [end_minute, 1439] | min }}
           sell_start_time: >-
             {% set m = sell_start_minute | int(1080) %}
@@ -608,6 +691,8 @@ automation:
           selected_spread: "{{ (sell_avg_price | float(0)) - (charge_avg_price | float(0)) }}"
           arbitrage_enabled: >-
             {{ force_sell_export | bool(false) or (min_price_spread_eur_kwh | float(0.08)) <= 0 or (selected_spread | float(0)) >= (min_price_spread_eur_kwh | float(0.08)) }}
+          sell_mode_available: "{{ (sell_option | string) != 'Disabled' }}"
+          arbitrage_sell_active: "{{ (arbitrage_enabled | bool(false)) and (sell_mode_available | bool(false)) }}"
 
       - alias: Calculate v9 TOU boundary helper values
         variables:
@@ -690,9 +775,9 @@ automation:
             - label: sell_start
               sort_key: "{{ 'm%04d' | format(sell_start_minute | int(1080)) }}"
               time: "{{ sell_start_time }}"
-              option: "{{ sell_option if arbitrage_enabled | bool(false) else 'Disabled' }}"
-              power: "{{ sell_power_w if arbitrage_enabled | bool(false) else 0 }}"
-              soc: "{{ sell_stop_soc if arbitrage_enabled | bool(false) else neutral_soc }}"
+              option: "{{ sell_option if arbitrage_sell_active | bool(false) else 'Disabled' }}"
+              power: "{{ sell_power_w if arbitrage_sell_active | bool(false) else 0 }}"
+              soc: "{{ sell_stop_soc if arbitrage_sell_active | bool(false) else neutral_soc }}"
             - label: sell_end
               sort_key: "{{ 'm%04d' | format(sell_end_minute | int(1200)) }}"
               time: "{{ sell_end_time }}"
@@ -955,6 +1040,29 @@ automation:
 
       - delay: "00:00:01"
 
+      - alias: Notify sell mode detection details when unavailable
+        if:
+          - condition: template
+            value_template: "{{ not (sell_mode_available | bool(false)) }}"
+        then:
+          - service: persistent_notification.create
+            data:
+              title: Tibber Deye sell mode unavailable
+              message: >-
+                Sell/export mode could not be resolved from inverter option lists.
+                Requested manual override: {{ manual_sell_option_requested if (manual_sell_option_requested | string | trim) != '' else 'none' }}.
+                Resolved sell option: {{ sell_option }}.
+                Arbitrage enabled: {{ 'yes' if arbitrage_enabled | bool(false) else 'no' }}.
+                Sell active: {{ 'yes' if arbitrage_sell_active | bool(false) else 'no' }}.
+                Spread {{ selected_spread | float(0) | round(4) }} EUR/kWh, threshold {{ min_price_spread_eur_kwh | float(0) | round(4) }}.
+                Program 1 options: {{ sell_options_program_1 }}.
+                Program 2 options: {{ sell_options_program_2 }}.
+                Program 3 options: {{ sell_options_program_3 }}.
+                Program 4 options: {{ sell_options_program_4 }}.
+                Program 5 options: {{ sell_options_program_5 }}.
+                Program 6 options: {{ sell_options_program_6 }}.
+                To force a known label, set input_text.tibber_deye_manual_sell_option exactly to one of the listed option values.
+
       - alias: Optional debug notification
         if:
           - condition: template
@@ -978,6 +1086,10 @@ automation:
                 average price {{ sell_avg_price | float(0) | round(4) }}.
                 Spread {{ selected_spread | float(0) | round(4) }} EUR/kWh;
                 force sell/export {{ 'on' if force_sell_export | bool(false) else 'off' }};
+                manual sell override {{ manual_sell_option_requested if (manual_sell_option_requested | string | trim) != '' else 'none' }};
+                resolved sell option {{ sell_option }};
+                sell mode available {{ 'yes' if sell_mode_available | bool(false) else 'no' }};
+                sell active {{ 'yes' if arbitrage_sell_active | bool(false) else 'no' }};
                 arbitrage {{ 'enabled' if arbitrage_enabled | bool(false) else 'blocked by spread guard' }}.
                 Hourly analysis:
                 {% set prices = prices_window if prices_window is sequence and prices_window is not string else [] %}
@@ -991,8 +1103,8 @@ automation:
                 {% set p = item.total | default(item.price | default(item)) | float(0) %}
                 {% if i >= (charge_start_index_effective | int(0)) and i < ((charge_start_index_effective | int(0)) + (charge_slots | int(1))) %}
                 {% set mode = 'CHARGE(Grid)' %}
-                {% elif arbitrage_enabled | bool(false) and i >= (sell_start_index | int(0)) and i < ((sell_start_index | int(0)) + (sell_slots | int(1))) %}
-                {% set mode = 'SELL(Disabled)' %}
+                {% elif arbitrage_sell_active | bool(false) and i >= (sell_start_index | int(0)) and i < ((sell_start_index | int(0)) + (sell_slots | int(1))) %}
+                {% set mode = 'SELL(' ~ (sell_option | string) ~ ')' %}
                 {% else %}
                 {% set mode = 'NEUTRAL' %}
                 {% endif %}
