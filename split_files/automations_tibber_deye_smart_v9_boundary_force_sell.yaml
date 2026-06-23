@@ -14,7 +14,7 @@
   condition:
     - condition: template
       value_template: >-
-        {{ states('sensor.fladderiepvliet_35_electricity_price') not in ['unknown', 'unavailable', 'none', ''] }}
+        {{ states('sensor.YOUR_HOME_electricity_price') not in ['unknown', 'unavailable', 'none', ''] }}
   action:
   - alias: Fetch 48h price slots via tibber.get_prices when available
     service: tibber.get_prices
@@ -156,8 +156,8 @@
         {% if ns.items | count > 0 %}
           {{ ns.items }}
         {% else %}
-          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.YOUR_HOME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices_tomorrow') or [] %}
           {{ (today + tomorrow) if (today | count > 0 or tomorrow | count > 0) else [] }}
         {% endif %}
       price_count: >-
@@ -202,12 +202,12 @@
         data:
           title: Tibber Deye schedule skipped
           message: >-
-            No usable Tibber price slots were found from sensor.fladderiepvliet_35_electricity_price.
+            No usable Tibber price slots were found from sensor.YOUR_HOME_electricity_price.
             The schedule was not rewritten, so the inverter keeps its previous TOU settings.
-            State: {{ states('sensor.fladderiepvliet_35_electricity_price') }}.
+            State: {{ states('sensor.YOUR_HOME_electricity_price') }}.
             normalized slot count: {{ price_count }}.
-            today count: {{ (state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or []) | count }}.
-            tomorrow count: {{ (state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or []) | count }}.
+            today count: {{ (state_attr('sensor.YOUR_HOME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices') or []) | count }}.
+            tomorrow count: {{ (state_attr('sensor.YOUR_HOME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices_tomorrow') or []) | count }}.
             Check whether tibber.get_prices is available and returning a 48h slot list.
       - stop: "No usable Tibber price slots"
 
@@ -894,8 +894,8 @@
         grid_charge_current_entity: number.inverter_battery_grid_charging_current
         grid_charge_current_trigger_id: "{{ trigger.id | default('manual') }}"
         grid_charge_current_prices: >-
-          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.YOUR_HOME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.YOUR_HOME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_electricity_price', 'prices_tomorrow') or [] %}
           {{ (today + tomorrow) if (today | count > 0 or tomorrow | count > 0) else [] }}
         grid_charge_current_slot_minutes: >-
           {% set prices = grid_charge_current_prices if grid_charge_current_prices is sequence and grid_charge_current_prices is not string else [] %}
