@@ -39,7 +39,7 @@ input_number:
     mode: box
     unit_of_measurement: W
     icon: mdi:transmission-tower-export
-    initial: 10000
+    initial: 8000
 
   tibber_deye_night_power_w:
     name: Tibber Deye night self-use power
@@ -49,7 +49,7 @@ input_number:
     mode: box
     unit_of_measurement: W
     icon: mdi:weather-night
-    initial: 1000
+    initial: 600
 
   tibber_deye_charge_efficiency:
     name: Tibber Deye charge efficiency estimate
@@ -149,6 +149,56 @@ input_number:
     icon: mdi:cash-clock
     initial: 0.08
 
+  tibber_deye_very_expensive_price_eur_kwh:
+    name: Tibber Deye very expensive sell price threshold
+    min: 0
+    max: 1
+    step: 0.01
+    mode: box
+    unit_of_measurement: EUR/kWh
+    icon: mdi:cash-plus
+    initial: 0.35
+
+  tibber_deye_grid_charge_current_08_a:
+    name: Tibber Deye grid charge current at 08:00
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 20
+
+  tibber_deye_grid_charge_current_09_a:
+    name: Tibber Deye grid charge current at 09:00
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 40
+
+  tibber_deye_grid_charge_current_10_a:
+    name: Tibber Deye grid charge current at 10:00
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 50
+
+  tibber_deye_grid_charge_current_cheapest_a:
+    name: Tibber Deye grid charge current at cheapest slot
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 110
+
 input_boolean:
   tibber_deye_force_sell_export:
     name: Tibber Deye force sell export
@@ -205,7 +255,7 @@ template:
         unique_id: tibber_deye_selected_price_day
         icon: mdi:calendar-clock
         state: >-
-          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
           {{ 'tomorrow' if now().hour >= 23 and tomorrow | count > 0 else 'today' }}
 
       - name: Tibber Deye price slots count
@@ -213,8 +263,8 @@ template:
         icon: mdi:timetable
         unit_of_measurement: slots
         state: >-
-          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
           {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
           {{ prices | count }}
 
@@ -223,8 +273,8 @@ template:
         icon: mdi:timer-outline
         unit_of_measurement: min
         state: >-
-          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
           {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
           {{ 15 if prices | count > 24 else 60 }}
 
@@ -232,8 +282,8 @@ template:
         unique_id: tibber_deye_cheapest_single_slot_time
         icon: mdi:cash-minus
         state: >-
-          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
           {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
           {% set slot = 15 if prices | count > 24 else 60 %}
           {% set ns = namespace(best=999999999, index=0) %}
@@ -248,8 +298,8 @@ template:
           {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
         attributes:
           price: >-
-            {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-            {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+            {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+            {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
             {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
             {% set ns = namespace(best=999999999) %}
             {% for item in prices %}
@@ -262,8 +312,8 @@ template:
         unique_id: tibber_deye_highest_single_slot_time
         icon: mdi:cash-plus
         state: >-
-          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
           {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
           {% set slot = 15 if prices | count > 24 else 60 %}
           {% set ns = namespace(best=-999999999, index=0) %}
@@ -278,8 +328,8 @@ template:
           {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
         attributes:
           price: >-
-            {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-            {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+            {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+            {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
             {% set prices = tomorrow if now().hour >= 23 and tomorrow | count > 0 else today %}
             {% set ns = namespace(best=-999999999) %}
             {% for item in prices %}
@@ -305,8 +355,8 @@ automation:
     condition:
       - condition: template
         value_template: >-
-          {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-          {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+          {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+          {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
           {{ today | count > 0 or tomorrow | count > 0 }}
     action:
       - alias: Fetch 48h price slots via tibber.get_prices when available
@@ -322,7 +372,7 @@ automation:
           battery_capacity_kwh: "{{ states('input_number.tibber_deye_battery_capacity_kwh') | float(20.48) }}"
           charge_power_w: "{{ states('input_number.tibber_deye_charge_power_w') | float(5000) }}"
           sell_power_w: "{{ states('input_number.tibber_deye_sell_power_w') | float(10000) }}"
-          night_power_w: "{{ states('input_number.tibber_deye_night_power_w') | float(1000) }}"
+          night_power_w: "{{ states('input_number.tibber_deye_night_power_w') | float(600) }}"
           charge_efficiency: "{{ states('input_number.tibber_deye_charge_efficiency') | float(0.92) }}"
           discharge_efficiency: "{{ states('input_number.tibber_deye_discharge_efficiency') | float(0.92) }}"
           charge_target_soc: "{{ states('input_number.tibber_deye_charge_target_soc') | float(90) }}"
@@ -356,7 +406,7 @@ automation:
             ] %}
             {% set requested = manual_sell_option_requested | string | trim %}
             {% set requested_l = requested | lower %}
-            {% set ns = namespace(all=[], value='Disabled') %}
+            {% set ns = namespace(all=[], value='') %}
             {% for src in option_sources %}
               {% for opt in src %}
                 {% if opt not in ns.all %}
@@ -367,12 +417,19 @@ automation:
             {% if requested != '' %}
               {% for opt in ns.all %}
                 {% set l = (opt | string | lower) %}
-                {% if l == requested_l %}
+                {% if l == requested_l and ('sell' in l or 'export' in l or 'feed' in l or 'discharge' in l) %}
                   {% set ns.value = opt %}
                 {% endif %}
               {% endfor %}
             {% endif %}
-            {% if ns.value == 'Disabled' %}
+            {% if ns.value == '' %}
+              {% for opt in ns.all %}
+                {% if (opt | string | lower) == 'sell' %}
+                  {% set ns.value = opt %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% if ns.value == '' %}
               {% for opt in ns.all %}
                 {% set l = (opt | string | lower) %}
                 {% if 'sell' in l or 'export' in l or 'feed' in l or 'discharge' in l %}
@@ -380,15 +437,14 @@ automation:
                 {% endif %}
               {% endfor %}
             {% endif %}
-            {% if ns.value == 'Disabled' %}
+            {% if ns.value == '' %}
               {% for opt in ns.all %}
-                {% set l = (opt | string | lower) %}
-                {% if 'first' in l and 'load' not in l and 'grid' not in l and 'charge' not in l %}
+                {% if (opt | string | lower) == 'disabled' %}
                   {% set ns.value = opt %}
                 {% endif %}
               {% endfor %}
             {% endif %}
-            {{ ns.value }}
+            {{ ns.value if ns.value != '' else 'Disabled' }}
           current_soc: "{{ states('sensor.inverter_battery_capacity') | float(25) }}"
           using_tomorrow: "false"
           prices_window: >-
@@ -437,8 +493,8 @@ automation:
             {% if ns.items | count > 0 %}
               {{ ns.items }}
             {% else %}
-              {% set today = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or [] %}
-              {% set tomorrow = state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or [] %}
+              {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+              {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
               {{ (today + tomorrow) if (today | count > 0 or tomorrow | count > 0) else [] }}
             {% endif %}
           price_count: >-
@@ -483,12 +539,12 @@ automation:
             data:
               title: Tibber Deye schedule skipped
               message: >-
-                No usable Tibber price slots were found from sensor.YOUR_HOME_NAME_electricity_price.
+                No usable Tibber price slots were found from sensor.fladderiepvliet_35_electricity_price.
                 The schedule was not rewritten, so the inverter keeps its previous TOU settings.
-                State: {{ states('sensor.YOUR_HOME_NAME_electricity_price') }}.
+                State: {{ states('sensor.fladderiepvliet_35_electricity_price') }}.
                 normalized slot count: {{ price_count }}.
-                today count: {{ (state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_today') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'forecast') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices') or []) | count }}.
-                tomorrow count: {{ (state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'raw_tomorrow') or state_attr('sensor.YOUR_HOME_NAME_electricity_price', 'prices_tomorrow') or []) | count }}.
+                today count: {{ (state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or []) | count }}.
+                tomorrow count: {{ (state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or []) | count }}.
                 Check whether tibber.get_prices is available and returning a 48h slot list.
           - stop: "No usable Tibber price slots"
 
@@ -691,59 +747,41 @@ automation:
           selected_spread: "{{ (sell_avg_price | float(0)) - (charge_avg_price | float(0)) }}"
           arbitrage_enabled: >-
             {{ force_sell_export | bool(false) or (min_price_spread_eur_kwh | float(0.08)) <= 0 or (selected_spread | float(0)) >= (min_price_spread_eur_kwh | float(0.08)) }}
-          sell_mode_available: "{{ (sell_option | string) != 'Disabled' }}"
+          sell_mode_available: "{{ true }}"
           arbitrage_sell_active: "{{ (arbitrage_enabled | bool(false)) and (sell_mode_available | bool(false)) }}"
 
       - alias: Calculate v9 TOU boundary helper values
         variables:
           # Deye/Solarman uses every program start time as the previous program end time.
           # v9 avoids a duplicate 00:00 boundary when the cheapest charge block starts at midnight.
+          morning_grid_start_target_minute: 480
+          morning_grid_start_minute: >-
+            {% set morning = morning_grid_start_target_minute | int(480) %}
+            {% set cs = charge_start_minute | int(-1) %}
+            {% set ce = charge_end_minute | int(-1) %}
+            {% if morning == cs or morning == ce %}
+              {{ [morning + 1, 1439] | min }}
+            {% else %}
+              {{ morning }}
+            {% endif %}
+          morning_grid_start_time: >-
+            {% set m = morning_grid_start_minute | int(480) %}
+            {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
           night_start_minute: >-
             {% set cs = charge_start_minute | int(0) %}
-            {% set ce = charge_end_minute | int(360) %}
-            {% if cs == 0 and ce < 360 %}
-              720
-            {% elif cs == 0 %}
-              {{ [ce + 2, 1439] | min }}
-            {% else %}
-              0
-            {% endif %}
+            {{ 1439 if cs == 0 else 0 }}
           night_start_time: >-
             {% set cs = charge_start_minute | int(0) %}
-            {% set ce = charge_end_minute | int(360) %}
-            {% if cs == 0 and ce < 360 %}
-              {% set m = 720 %}
-            {% elif cs == 0 %}
-              {% set m = [ce + 2, 1439] | min %}
-            {% else %}
-              {% set m = 0 %}
-            {% endif %}
+            {% set m = 1439 if cs == 0 else 0 %}
             {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
           night_start_power_effective: >-
             {% if charge_start_minute | int(0) == 0 %}0{% else %}{{ night_power_w }}{% endif %}
           night_start_soc_effective: >-
             {% if charge_start_minute | int(0) == 0 %}{{ neutral_soc }}{% else %}{{ night_stop_soc }}{% endif %}
           after_charge_power_effective: >-
-            {% if charge_end_minute | int(0) < 360 %}{{ night_power_w }}{% else %}0{% endif %}
+            {% if charge_end_minute | int(0) < (morning_grid_start_minute | int(480)) %}{{ night_power_w }}{% else %}0{% endif %}
           after_charge_soc_effective: >-
-            {% if charge_end_minute | int(0) < 360 %}{{ night_stop_soc }}{% else %}{{ neutral_soc }}{% endif %}
-          night_end_minute: >-
-            {% set cs = charge_start_minute | int(0) %}
-            {% set ce = charge_end_minute | int(360) %}
-            {% if cs < 360 and ce > 360 %}
-              {{ [ce + 1, 1439] | min }}
-            {% else %}
-              360
-            {% endif %}
-          night_end_time: >-
-            {% set cs = charge_start_minute | int(0) %}
-            {% set ce = charge_end_minute | int(360) %}
-            {% if cs < 360 and ce > 360 %}
-              {% set m = [ce + 1, 1439] | min %}
-            {% else %}
-              {% set m = 360 %}
-            {% endif %}
-            {{ "%02d:%02d:00" | format(m // 60, m % 60) }}
+            {% if charge_end_minute | int(0) < (morning_grid_start_minute | int(480)) %}{{ night_stop_soc }}{% else %}{{ neutral_soc }}{% endif %}
 
       - alias: Build six TOU periods with unique boundaries and sort them by start time
         variables:
@@ -766,12 +804,12 @@ automation:
               option: Disabled
               power: "{{ after_charge_power_effective }}"
               soc: "{{ after_charge_soc_effective }}"
-            - label: night_end_or_unused
-              sort_key: "{{ 'm%04d' | format(night_end_minute | int(360)) }}"
-              time: "{{ night_end_time }}"
-              option: Disabled
-              power: 0
-              soc: "{{ neutral_soc }}"
+            - label: morning_grid_start
+              sort_key: "{{ 'm%04d' | format(morning_grid_start_minute | int(480)) }}"
+              time: "{{ morning_grid_start_time }}"
+              option: Grid
+              power: "{{ charge_power_w }}"
+              soc: "{{ charge_target_soc }}"
             - label: sell_start
               sort_key: "{{ 'm%04d' | format(sell_start_minute | int(1080)) }}"
               time: "{{ sell_start_time }}"
@@ -782,8 +820,8 @@ automation:
               sort_key: "{{ 'm%04d' | format(sell_end_minute | int(1200)) }}"
               time: "{{ sell_end_time }}"
               option: Disabled
-              power: 0
-              soc: "{{ neutral_soc }}"
+              power: "{{ night_power_w }}"
+              soc: "{{ night_stop_soc }}"
 
       - alias: Enable TOU mode before writing periods
         service: script.turn_on
@@ -1061,7 +1099,7 @@ automation:
                 Program 4 options: {{ sell_options_program_4 }}.
                 Program 5 options: {{ sell_options_program_5 }}.
                 Program 6 options: {{ sell_options_program_6 }}.
-                To force a known label, set input_text.tibber_deye_manual_sell_option exactly to one of the listed option values.
+                To force a known sell/export/discharge label, set input_text.tibber_deye_manual_sell_option exactly to that option value. Grid, Generator, and Both are ignored for sell periods.
 
       - alias: Optional debug notification
         if:
@@ -1110,6 +1148,99 @@ automation:
                 {% endif %}
                 {{ hhmm }} price={{ p | round(4) }} -> {{ mode }}
                 {% endfor %}
+
+  - id: tibber_deye_grid_charge_current_steps
+    alias: Tibber Deye - Grid Charge Current Steps v9
+    description: Sets battery grid-charging current at 08:00, 09:00, 10:00, and during the cheapest Tibber slot
+    mode: restart
+    trigger:
+      - platform: time
+        at: "08:00:00"
+        id: morning_08
+      - platform: time
+        at: "09:00:00"
+        id: morning_09
+      - platform: time
+        at: "10:00:00"
+        id: morning_10
+      - platform: time_pattern
+        minutes: "/5"
+        id: cheapest_slot
+    condition:
+      - condition: template
+        value_template: >-
+          {{ states('number.inverter_battery_grid_charging_current') not in ['unknown', 'unavailable', 'none', ''] }}
+    action:
+      - variables:
+          grid_charge_current_entity: number.inverter_battery_grid_charging_current
+          grid_charge_current_trigger_id: "{{ trigger.id | default('manual') }}"
+          grid_charge_current_prices: >-
+            {% set today = state_attr('sensor.fladderiepvliet_35_electricity_price', 'today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_today') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'forecast') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices') or [] %}
+            {% set tomorrow = state_attr('sensor.fladderiepvliet_35_electricity_price', 'tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'raw_tomorrow') or state_attr('sensor.fladderiepvliet_35_electricity_price', 'prices_tomorrow') or [] %}
+            {{ (today + tomorrow) if (today | count > 0 or tomorrow | count > 0) else [] }}
+          grid_charge_current_slot_minutes: >-
+            {% set prices = grid_charge_current_prices if grid_charge_current_prices is sequence and grid_charge_current_prices is not string else [] %}
+            {% if prices | count > 1 %}
+              {% set a = prices[0] %}
+              {% set b = prices[1] %}
+              {% set a_ts = as_timestamp(a.startsAt | default(a.start | default(a.starts_at | default(a.start_time | default(a.time | default(''))))), 0) %}
+              {% set b_ts = as_timestamp(b.startsAt | default(b.start | default(b.starts_at | default(b.start_time | default(b.time | default(''))))), 0) %}
+              {% set diff = ((b_ts - a_ts) / 60) | int(0) %}
+              {{ diff if diff in [15, 30, 60] else (15 if prices | count > 24 else 60) }}
+            {% else %}
+              {{ 15 if prices | count > 24 else 60 }}
+            {% endif %}
+          grid_charge_current_cheapest_active: >-
+            {% set prices = grid_charge_current_prices if grid_charge_current_prices is sequence and grid_charge_current_prices is not string else [] %}
+            {% set slot_min = grid_charge_current_slot_minutes | int(60) %}
+            {% set now_ts = as_timestamp(now()) %}
+            {% set ns = namespace(best=999999999, ts=0) %}
+            {% for item in prices %}
+              {% set raw = item.startsAt | default(item.start | default(item.starts_at | default(item.start_time | default(item.time | default(''))))) %}
+              {% set ts = as_timestamp(raw, 0) %}
+              {% set price = item.total | default(item.price | default(item)) | float(999999999) %}
+              {% if ts > 0 and price < ns.best %}
+                {% set ns.best = price %}
+                {% set ns.ts = ts %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.ts > 0 and now_ts >= ns.ts and now_ts < (ns.ts + (slot_min * 60)) }}
+          grid_charge_current_morning_active: >-
+            {% set minute = (now().hour * 60) + now().minute %}
+            {{ minute >= 480 and minute < 960 }}
+          grid_charge_current_desired_a: >-
+            {% set minute = (now().hour * 60) + now().minute %}
+            {% if grid_charge_current_cheapest_active | bool(false) %}
+              {{ states('input_number.tibber_deye_grid_charge_current_cheapest_a') | float(110) }}
+            {% elif minute >= 600 and minute < 960 %}
+              {{ states('input_number.tibber_deye_grid_charge_current_10_a') | float(50) }}
+            {% elif minute >= 540 and minute < 600 %}
+              {{ states('input_number.tibber_deye_grid_charge_current_09_a') | float(40) }}
+            {% elif minute >= 480 and minute < 540 %}
+              {{ states('input_number.tibber_deye_grid_charge_current_08_a') | float(20) }}
+            {% elif (grid_charge_current_trigger_id | string) == 'morning_10' %}
+              {{ states('input_number.tibber_deye_grid_charge_current_10_a') | float(50) }}
+            {% else %}
+              {{ states(grid_charge_current_entity) | float(0) }}
+            {% endif %}
+          grid_charge_current_should_set: >-
+            {% set desired = grid_charge_current_desired_a | float(-1) %}
+            {% set current = states(grid_charge_current_entity) | float(-999999) %}
+            {% set fixed_time = (grid_charge_current_trigger_id | string) in ['morning_08', 'morning_09', 'morning_10'] %}
+            {{ desired >= 0 and (fixed_time or (grid_charge_current_morning_active | bool(false)) or (grid_charge_current_cheapest_active | bool(false))) and ((current - desired) | abs >= 0.5) }}
+      - condition: template
+        value_template: "{{ grid_charge_current_should_set | bool(false) }}"
+      - service: number.set_value
+        continue_on_error: true
+        target:
+          entity_id: "{{ grid_charge_current_entity }}"
+        data:
+          value: >-
+            {% set eid = grid_charge_current_entity %}
+            {% set desired = grid_charge_current_desired_a | float(0) %}
+            {% set minv = state_attr(eid, 'min') | float(0) %}
+            {% set maxv = state_attr(eid, 'max') | float(desired) %}
+            {{ [[desired, minv] | max, maxv] | min }}
 
   - id: tibber_deye_low_soc_emergency_charge
     alias: Tibber Deye - Emergency Low SOC Grid Charge v9

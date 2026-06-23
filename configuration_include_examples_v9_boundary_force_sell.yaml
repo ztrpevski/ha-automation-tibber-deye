@@ -8,6 +8,7 @@ script: !include split_files/scripts_tibber_deye_v9_boundary_force_sell.yaml
 template: !include split_files/templates_tibber_deye_v9_boundary_force_sell.yaml
 input_number: !include split_files/input_numbers_tibber_deye_v9_boundary_force_sell.yaml
 input_boolean: !include split_files/input_booleans_tibber_deye_v9_boundary_force_sell.yaml
+input_text: !include split_files/input_texts_tibber_deye_v9_boundary_force_sell.yaml
 
 # Package style alternative (use only if you disable split includes above):
 # homeassistant:

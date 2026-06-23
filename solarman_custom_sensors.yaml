@@ -1,0 +1,115 @@
+# Solarman custom sensors for Deye/Solarman inverters
+#
+# These are read-only derived sensors for the ha-solarman integration.
+# They do NOT add new options like "Sell" to select entities.
+# They are useful for exposing extra telemetry that your Tibber/Deye automation
+# can consume directly, especially battery and power-related values.
+#
+# Register usage follows examples from:
+# https://github.com/davidrapan/ha-solarman/wiki/Custom-Sensors
+#
+# Typical use:
+# 1. Add this file somewhere under your Home Assistant config, for example:
+#      /config/solarman/solarman_custom_sensors.yaml
+# 2. Point your Solarman device configuration to this YAML file in the integration.
+# 3. Reload the integration or restart Home Assistant.
+#
+# Notes:
+# - Register addresses here are based on common Deye/Solarman mappings shown in the wiki.
+# - If your inverter model exposes different registers, adjust them to match your device.
+
+- name: Solarman Battery Power
+  description: Signed battery power from inverter register, useful for automation fallback logic
+  class: power
+  state_class: measurement
+  uom: W
+  rule: 2
+  digits: 0
+  signed:
+  registers: [0x024E]
+  icon: mdi:battery-arrow-up-down
+
+- name: Solarman Battery Power Inverted
+  description: Battery power with inverted sign, useful if your installation expects discharge as positive
+  class: power
+  state_class: measurement
+  uom: W
+  rule: 2
+  digits: 0
+  inverted: true
+  registers: [0x024E]
+  icon: mdi:battery-sync
+
+- name: Solarman PV Power
+  description: Combined PV input power across all strings
+  realtime:
+  class: power
+  state_class: measurement
+  uom: W
+  rule: 1
+  digits: 0
+  sensors:
+    - registers: [0x02A0]
+    - registers: [0x02A1]
+    - registers: [0x02A2]
+    - registers: [0x02A3]
+  icon: mdi:solar-power-variant
+
+- name: Solarman Power Losses
+  description: Device consumption plus AC/DC conversion losses
+  class: power
+  state_class: measurement
+  uom: W
+  rule: 1
+  digits: 0
+  uint: enforce
+  sensors:
+    - signed:
+      registers: [0x024E]
+    - registers: [0x02A0]
+    - registers: [0x02A1]
+    - registers: [0x02A2]
+    - registers: [0x02A3]
+    - operator: subtract
+      signed:
+      registers: [0x027C, 0x02B6]
+  icon: mdi:chart-bell-curve-cumulative
+
+- name: Solarman Total Consumption
+  description: Total calculated consumption including inverter losses
+  class: energy
+  state_class: total_increasing
+  uom: kWh
+  rule: 3
+  digits: 1
+  scale: 0.1
+  sensors:
+    - registers: [0x01F8, 0x01F9]
+    - registers: [0x020A, 0x020B]
+    - registers: [0x0216, 0x0217]
+    - registers: [0x0206, 0x0207]
+    - operator: subtract
+      registers: [0x020C, 0x020D]
+    - operator: subtract
+      registers: [0x0204, 0x0205]
+  icon: mdi:home-lightning-bolt
+
+- name: Solarman Today Consumption
+  friendly_name: Solarman Today Consumption
+  description: Daily calculated consumption including inverter losses
+  class: energy
+  state_class: total_increasing
+  uom: kWh
+  rule: 1
+  digits: 1
+  scale: 0.1
+  sensors:
+    - registers: [0x01F5]
+    - registers: [0x0208]
+    - registers: [0x0211]
+    - registers: [0x0203]
+    - operator: subtract
+      registers: [0x0209]
+    - operator: subtract
+      registers: [0x0202]
+  icon: mdi:calendar-today

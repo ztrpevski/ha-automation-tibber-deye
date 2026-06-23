@@ -1,0 +1,5 @@
+tibber_deye_manual_sell_option:
+    name: Tibber Deye manual sell option override
+    max: 60
+    mode: text
+    icon: mdi:form-textbox

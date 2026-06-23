@@ -36,7 +36,7 @@ tibber_deye_night_power_w:
     mode: box
     unit_of_measurement: W
     icon: mdi:weather-night
-    initial: 1000
+    initial: 600
 
 tibber_deye_charge_efficiency:
     name: Tibber Deye charge efficiency estimate
@@ -136,3 +136,52 @@ tibber_deye_min_price_spread_eur_kwh:
     icon: mdi:cash-clock
     initial: 0.08
 
+tibber_deye_very_expensive_price_eur_kwh:
+    name: Tibber Deye very expensive sell price threshold
+    min: 0
+    max: 1
+    step: 0.01
+    mode: box
+    unit_of_measurement: EUR/kWh
+    icon: mdi:cash-plus
+    initial: 0.35
+
+tibber_deye_grid_charge_current_08_a:
+    name: Tibber Deye grid charge current at 08:00
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 20
+
+tibber_deye_grid_charge_current_09_a:
+    name: Tibber Deye grid charge current at 09:00
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 40
+
+tibber_deye_grid_charge_current_10_a:
+    name: Tibber Deye grid charge current at 10:00
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 50
+
+tibber_deye_grid_charge_current_cheapest_a:
+    name: Tibber Deye grid charge current at cheapest slot
+    min: 0
+    max: 200
+    step: 1
+    mode: box
+    unit_of_measurement: A
+    icon: mdi:current-dc
+    initial: 110

@@ -8,17 +8,18 @@
     "template",
     "automation"
   ],
-  "automations": 2,
+  "automations": 3,
   "scripts": 3,
-  "input_numbers": 14,
+  "input_numbers": 19,
   "input_booleans": 2,
   "fixes": [
     "capital select options Grid and Disabled",
     "force sell/export helper added",
     "duplicate midnight boundary avoided when charge starts at 00:00",
-    "night self-use resumes after midnight charge block when charge ends before 06:00",
+    "night self-use resumes at 600 W after midnight charge and after the peak sell block",
     "helper variables split into a separate action",
-    "unused boundaries avoid interrupting charge if charge spans 06:00"
+    "unused boundaries avoid interrupting charge if charge spans 06:00",
+    "grid charging current helper added for 08:00, 09:00, 10:00, and cheapest Tibber slot"
   ],
   "forbidden_lowercase_option_disabled_present": false,
   "forbidden_lowercase_option_grid_present": false,
